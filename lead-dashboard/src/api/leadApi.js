@@ -1,9 +1,10 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL: "https://leader-dashboard.onrender.com/api",
 });
 
+// ✅ attach token automatically
 API.interceptors.request.use((req) => {
   const token = localStorage.getItem("token");
 
@@ -26,3 +27,5 @@ export const updateLead = (id, data) =>
 
 export const deleteLead = (id) =>
   API.delete(`/leads/${id}`);
+
+export default API;
