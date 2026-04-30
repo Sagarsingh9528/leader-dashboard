@@ -3,13 +3,18 @@ import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./configs/db.js";
 import leadRoutes from "./routes/leadRoutes.js";
-import authRoutes from "./routes/authRoutes.js"
+import authRoutes from "./routes/authRoutes.js";
 
 dotenv.config();
 
 const app = express();
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "https://leader-dashboard-tau.vercel.app",
+    credentials: true,
+  }),
+);
 app.use(express.json());
 
 connectDB();
