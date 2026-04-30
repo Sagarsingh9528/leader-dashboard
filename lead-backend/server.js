@@ -14,6 +14,10 @@ app.use(express.json());
 
 connectDB();
 
+app.get("/", (req, res) => {
+  res.send("API is running...");
+});
+
 app.use("/api", leadRoutes);
 app.use("/api/auth", authRoutes);
 
