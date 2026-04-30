@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Input from "../components/common/Input";
 import Select from "../components/common/Select";
 import Button from "../components/common/Button";
+import { createLead } from "../api/leadApi";
 
 const defaultForm = {
   name: "",
@@ -14,16 +16,10 @@ const defaultForm = {
 };
 
 const AddLead = () => {
-  const [form, setForm] = useState(() => {
-    try {
-      const saved = localStorage.getItem("leadForm");
-      return saved ? JSON.parse(saved) : defaultForm;
-    } catch {
-      return defaultForm;
-    }
-  });
-
+  const [form, setForm] = useState(defaultForm);
   const [loading, setLoading] = useState(false);
+
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const value =
@@ -31,13 +27,10 @@ const AddLead = () => {
         ? Number(e.target.value)
         : e.target.value;
 
-    const updated = {
+    setForm({
       ...form,
       [e.target.name]: value,
-    };
-
-    setForm(updated);
-    localStorage.setItem("leadForm", JSON.stringify(updated));
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -51,28 +44,16 @@ const AddLead = () => {
     setLoading(true);
 
     try {
-      await new Promise((res) => setTimeout(res, 500));
-      const existingLeads =
-        JSON.parse(localStorage.getItem("leads")) || [];
-
-      const updatedLeads = [
-        ...existingLeads,
-        { ...form, id: Date.now() },
-      ];
-
-      localStorage.setItem("leads", JSON.stringify(updatedLeads));
-
-      console.log("Saved:", form);
+      await createLead(form);
 
       alert("Lead Added Successfully");
 
-      // ✅ 4. Reset form + clear temp storage
       setForm(defaultForm);
-      localStorage.removeItem("leadForm");
+      navigate("/leads");
 
     } catch (err) {
       console.error(err);
-      alert("Error submitting form");
+      alert(err?.response?.data?.message || "Error submitting form");
     } finally {
       setLoading(false);
     }
@@ -135,11 +116,7 @@ const AddLead = () => {
           options={["New", "Interested", "Converted", "Rejected"]}
         />
 
-        <Button
-          type="submit"
-          className="w-full"
-          disabled={loading}
-        >
+        <Button type="submit" className="w-full" disabled={loading}>
           {loading ? "Submitting..." : "Submit"}
         </Button>
 

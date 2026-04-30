@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import { filterLeads, exportCSV } from "../utils/helper";
+import { exportCSV } from "../utils/helper";
+import { getLeads } from "../api/leadApi";
 
 const Reports = () => {
   const [leads, setLeads] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const [filters, setFilters] = useState({
     city: "",
@@ -12,18 +14,35 @@ const Reports = () => {
     toDate: "",
   });
 
+  const fetchLeads = async () => {
+    try {
+      setLoading(true);
+
+      const query = new URLSearchParams(filters).toString();
+
+      const res = await getLeads(`?${query}`);
+
+      setLeads(res.data);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to fetch reports");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const data = JSON.parse(localStorage.getItem("leads")) || [];
-    setLeads(data);
+    fetchLeads();
   }, []);
 
-  const filtered = filterLeads(leads, filters);
+  useEffect(() => {
+    fetchLeads();
+  }, [filters]);
 
   return (
     <div className="w-full p-4 sm:p-6 space-y-6">
 
       <h1 className="text-2xl font-semibold">Reports</h1>
-
       <div className="bg-white p-4 rounded-lg shadow-sm space-y-4">
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -79,6 +98,7 @@ const Reports = () => {
           />
         </div>
 
+
         <div className="flex gap-3 flex-wrap">
           <button
             className="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300"
@@ -97,7 +117,7 @@ const Reports = () => {
 
           <button
             className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-            onClick={() => exportCSV(filtered)}
+            onClick={() => exportCSV(leads)}
           >
             Export CSV
           </button>
@@ -116,15 +136,21 @@ const Reports = () => {
           </thead>
 
           <tbody>
-            {filtered.length === 0 ? (
+            {loading ? (
+              <tr>
+                <td colSpan="4" className="text-center p-4">
+                  Loading...
+                </td>
+              </tr>
+            ) : leads.length === 0 ? (
               <tr>
                 <td colSpan="4" className="text-center p-4">
                   No data found
                 </td>
               </tr>
             ) : (
-              filtered.map((lead) => (
-                <tr key={lead.id} className="border-t">
+              leads.map((lead) => (
+                <tr key={lead._id} className="border-t">
                   <td className="p-3">{lead.name}</td>
                   <td className="p-3">{lead.city}</td>
                   <td className="p-3">{lead.service}</td>
@@ -135,10 +161,8 @@ const Reports = () => {
           </tbody>
         </table>
       </div>
-
-      {/* Summary */}
       <div className="text-sm text-gray-600">
-        Showing {filtered.length} of {leads.length} leads
+        Showing {leads.length} leads
       </div>
 
     </div>
