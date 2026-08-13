@@ -11,7 +11,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "https://task-tracker-19ed.vercel.app",
+    origin: "https://leader-dashboard-tau.vercel.app",
     credentials: true,
   }),
 );
